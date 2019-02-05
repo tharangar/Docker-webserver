@@ -62,9 +62,9 @@ ENV APACHE_RUN_GROUP www-data
 
 EXPOSE 89
 EXPOSE 443
+EXPOSE 433
 #EXPOSE 8080
 
-EXPOSE 4343
 
 
 
@@ -79,8 +79,10 @@ ADD ./config/hosts /etc/hosts
 
 ADD ./app/ /var/www/html/site/
 #RUN  copy cert files
-ADD ./tls/cert.pem /etc/ssl/certs/copper.opensource.lk.cert.pem
-ADD ./tls/privkey.pem /etc/ssl/private/copper.opensource.lk.privkey.pem
+#ADD ./tls/cert.pem /etc/ssl/certs/copper.opensource.lk.cert.pem
+ADD ./tls/cert.pem /etc/ssl/certs/cert.pem
+#ADD ./tls/privkey.pem /etc/ssl/private/copper.opensource.lk.privkey.pem
+ADD ./tls/privkey.pem /etc/ssl/private/privkey.pem
 
 #RUN chmod -R 777 /var/www/html/site/app
 
@@ -138,15 +140,24 @@ RUN certbot-auto \
 
 # this for copper live server
 ADD ./config/copper.opensource.lk.conf /etc/apache2/sites-enabled/copper.opensource.lk.conf
+ADD ./config/copper.https.conf /etc/apache2/sites-enabled/copper.https.conf
 
 # adding ports.conf file to the image
 ADD ./config/ports.conf  /etc/apache2/
 
-# adding host file
-ADD ./config/hosts /etc/hosts
-
 RUN certbot renew --dry-run
 # By default start up apache in the foreground, override with /bin/bash for interative.
 #CMD chmod -R 777 /var/www/html/data/
+
+# Attempting to copy to host file to container or change the content
+# adding host file
+ADD ./config/hosts /etc/hosts
+# put new entry to the host file
+RUN echo "127.0.0.1  copper.opensource.lk copper" >> /etc/hosts
+#RUN sed -i "s/127.0.0.1 = .*$/127.0.0.1 = copper.opensource.lk/" /etc/hosts
+
+# enable https in apache
+RUN a2enmod ssl
+
 CMD /usr/sbin/apache2ctl -D FOREGROUND
 
