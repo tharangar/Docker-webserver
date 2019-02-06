@@ -1,6 +1,8 @@
 # Docker - Apache with Let's Encrypt
 
 This is a debian-based image which runs an apache and get's it SSL-certificates automatically from Let's Encrypt.
+Further you can use already created key files by coppying them to tls folder.
+Even though automatic key configuration failed it will be up with this coppied key files.
 
 ## Instructions
 
@@ -13,10 +15,17 @@ There are some things you have to care about in your apache-config if you want t
 
 ### Run it
 
-For an easy test-startup you just have to:
+For an easy test-startup you just have to clone and build following project.
 
 ```
-$ docker run -d --name apache-ssl birgerk/apache-letsencrypt
+// Download the repository
+$ git clone https://github.com/tharangar/apache-docker.git
+cd apache-docker
+// Build the homail docker image
+$ docker build -t homail .
+// run the docker image 
+$ docker run -p 80:80 -p 89:89 -p 443:443 -p 433:433 --name homail -d homail
+
 ```
 
 Now you have locally an apache running, which gets it SSL-certificates from Let's Encrypt.
@@ -30,28 +39,16 @@ $ UPDATED_DOMAINS="example.org,more.example.org"
 $ docker exec -it apache-ssl /run_letsencrypt.sh --domains $UPDATED_DOMAINS
 ```
 
-### Configuring docker-container
+### Test the result
 
-It's possible to configure the docker-container by setting the following environment-variables at container-startup:
+You can test following urls whether they are working properly
 
-- `DOMAINS`, configures which for which domains a SSL-certificate shall be requested from Let's Encrypt, default is `""`. Must be given as comma-seperated list, f.e.: `"example.com,my-internet.org,more.example.com"`.
-- `WEBMASTER_MAIL`, Let's Encrypt needs a mail-address from the webmaster of the requested domain. You have to set it, otherwise Let's Encrypt won't give the certificates. Default is `""`. Must be given as simple mail-address, f.e.: `"webmaster@example.com"`.
-- `STAGING`, if set with a not-null string use Let's Encrypt Staging environment to avoid rate limits during development.
+'''
+// test the apache main page
+http://localhost
+// rainloop with https
+https://localhost
+// rainloop with https and optiional port
+https://localhost:433/
+'''
 
-### Location of letsencrypt-certs
-
-After letsencrypt did authenticate your domains and you got your certificates, you'll find your certificates under `/etc/letsencrypt/live/<example.com>/`.
-
-So your https-virtualhost should like:
-
-```
-<VirtualHost *:443>
-    ServerName example.com
-    ServerAdmin webmaster@somewhere.org
-    DocumentRoot /var/www/html
-
-    SSLCertificateFile /etc/letsencrypt/live/${VIRTUAL_HOST}/fullchain.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/${VIRTUAL_HOST}/privkey.pem
-    Include /etc/letsencrypt/options-ssl-apache.conf
-</VirtualHost>
-```

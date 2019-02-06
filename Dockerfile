@@ -1,5 +1,6 @@
 #https://medium.com/@meeramarygeorge/create-php-mysql-apache-development-environment-using-docker-in-windows-9beeba6985
 #https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-18-04
+#https://loige.co/using-lets-encrypt-and-certbot-to-automate-the-creation-of-certificates-for-openvpn/
 FROM ubuntu:latest
 #FROM ubuntu:14.04
 
@@ -58,12 +59,15 @@ ENV APACHE_RUN_GROUP www-data
 
 
 
-# Expose apache.
-
+# Expose to letsencript key generation ACME test
+EXPOSE 80 
+# Expose for non secured access (without https) for testing perposes
 EXPOSE 89
+# primary https port
 EXPOSE 443
+# secondary https port
 EXPOSE 433
-#EXPOSE 8080
+
 
 
 
@@ -118,17 +122,19 @@ RUN mv certbot-auto /usr/local/bin
 RUN certbot-auto --noninteractive --os-packages-only
 # Use this command if a webserver is already running with the webroot
 # at /var/www/html.
-RUN certbot-auto certonly \
+#RUN certbot-auto certonly \
 RUN certbot-auto \
   --non-interactive \
   --agree-tos \
   --text \
   --rsa-key-size 4096 \
   --email admin@copper.opensource.lk \
+  --domains copper.opensource.lk \
   --webroot-path /var/www/html/site/ \
-  --apache \
-  --help plugins \
-  --domains "copper.opensource.lk"
+  #--apache \
+  --apache 2> /dev/null || true
+  #--help plugins \
+
 
 
 

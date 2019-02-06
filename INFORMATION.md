@@ -13,6 +13,7 @@ https://www.tauceti.blog/post/run-postfix-in-kubernetes/
 # Apache web server with https with docker and kubernetes
 https://manual.seafile.com/deploy/https_with_apache.html
 https://www.digicert.com/csr-ssl-installation/apache-openssl.htm
+https://www.tecmint.com/install-rainloop-webmail-in-arch-linux/
 
 // building new docker for 
 docker build -t homail .
@@ -75,7 +76,7 @@ Ex :
 
 
 // run the docker image opening the https port 443
-'''docker run -p 89:89 -p 443:443 -p 433:433 --name homail -d homail'''
+'''docker run -p 80:80 -p 89:89 -p 443:443 -p 433:433 --name homail -d homail'''
 
 // then login to the homail container and test the apache congiguration
 '''apachectl configtest
