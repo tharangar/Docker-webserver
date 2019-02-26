@@ -17,6 +17,7 @@ https://www.tecmint.com/install-rainloop-webmail-in-arch-linux/
 
 // building new docker for 
 docker build -t homail .
+docker build -t webmail .
 
 // run the homail image as homail container
 docker run --name homail -d homail

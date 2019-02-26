@@ -1,8 +1,8 @@
 #https://medium.com/@meeramarygeorge/create-php-mysql-apache-development-environment-using-docker-in-windows-9beeba6985
 #https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-18-04
 #https://loige.co/using-lets-encrypt-and-certbot-to-automate-the-creation-of-certificates-for-openvpn/
-FROM ubuntu:latest
-#FROM ubuntu:14.04
+#FROM ubuntu:latest
+FROM ubuntu:18.04
 
 MAINTAINER Name<admin@opensource.lk>
 
@@ -11,7 +11,21 @@ ENV DOMAIN=${DOMAIN}
 
 # Install basics
 
-RUN apt-get update
+#RUN apt-get update
+RUN apt-get update --fix-missing && apt-get -y purge exim4*
+RUN apt-get -y upgrade
+RUN apt-get -y install apt-utils
+# installing netstat command
+RUN apt-get -y install net-tools
+# installing ping command
+RUN apt-get install -y iputils-ping
+# install mail until for testing functions
+RUN apt-get -y install mailutils
+# installing lsof command
+RUN apt-get -y install lsof
+RUN apt-get -y install telnet
+RUN apt-get -y install nano
+RUN apt-get -y install letsencrypt openssl
 
 RUN apt-get install -y software-properties-common && \
 
@@ -60,7 +74,7 @@ ENV APACHE_RUN_GROUP www-data
 
 
 # Expose to letsencript key generation ACME test
-EXPOSE 80 
+#EXPOSE 80 
 # Expose for non secured access (without https) for testing perposes
 EXPOSE 89
 # primary https port
@@ -88,6 +102,10 @@ ADD ./tls/cert.pem /etc/ssl/certs/cert.pem
 #ADD ./tls/privkey.pem /etc/ssl/private/copper.opensource.lk.privkey.pem
 ADD ./tls/privkey.pem /etc/ssl/private/privkey.pem
 
+#ADD ssl certificate list als
+ADD ./tls/copper.opensource.lk.crt /etc/ssl/certs/copper.opensource.lk.crt
+ADD ./tls/copper.opensource.lk.key /etc/ssl/private/copper.opensource.lk.key
+
 #RUN chmod -R 777 /var/www/html/site/app
 
  RUN chown -R www-data:www-data /var/www/html/site/
@@ -100,7 +118,7 @@ RUN apt-get -y install nano
 # Lets encript 
 
 # First, add the repository:
-RUN add-apt-repository -y ppa:certbot/certbot
+RUN add-apt-repository -y ppa:certbot/certbot 2> /dev/null || true
 
 #Install Certbot's Apache package with apt:
 RUN apt install -y python-certbot-apache
@@ -119,7 +137,7 @@ RUN apt-get install -y wget
 RUN wget https://dl.eff.org/certbot-auto
 RUN chmod a+x certbot-auto
 RUN mv certbot-auto /usr/local/bin
-RUN certbot-auto --noninteractive --os-packages-only
+RUN certbot-auto --noninteractive --os-packages-only 2> /dev/null || true
 # Use this command if a webserver is already running with the webroot
 # at /var/www/html.
 #RUN certbot-auto certonly \
@@ -145,8 +163,10 @@ RUN certbot-auto \
 #RUN cp ./tls/privkey.pem /etc/ssl/private/copper.opensource.lk.privkey.pem
 
 # this for copper live server
-ADD ./config/copper.opensource.lk.conf /etc/apache2/sites-enabled/copper.opensource.lk.conf
+ADD ./config/copper.http.conf /etc/apache2/sites-enabled/copper.http.conf
 ADD ./config/copper.https.conf /etc/apache2/sites-enabled/copper.https.conf
+# coppies port configuration
+ADD ./config/ports.conf /etc/apache2/ports.conf
 
 # adding ports.conf file to the image
 ADD ./config/ports.conf  /etc/apache2/

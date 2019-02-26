@@ -1,26 +1,43 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: homail
+  name: webmail
   namespace: monitoring
 spec:
   type: LoadBalancer
   selector:
-    app: homail
+    app: webmail
   ports:
-    - protocol: "TCP"
-      port: 88
-      #targetPort: 80
-      targetPort: http
+    #- protocol: "TCP"
+    #  port: 443
+    #- protocol: TCP
+    #  port: 80
+    #  targetPort: 80
+    #  name: http
+    - protocol: TCP
+      port: 443
+      targetPort: 443
+      name: https
+    - protocol: TCP
+      port: 433
+      targetPort: 433
+      name: http
+    #- protocol: TCP
+    #  port: 587
+    #  targetPort: 587
+    #  name: submission
+    #  port: 433
+    #  targetPort: 433
+      #targetPort: http
       #clusterIP: None    
-      name: webmail
+      #name: webmail
       #nodePort: 30080
   #type: NodePort
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: homail
+  name: webmail
   namespace: monitoring
 spec:
   replicas: 1
@@ -31,29 +48,31 @@ spec:
         track: stable
     spec:
       containers:
-        - name: homail
+        - name: webmail
           #image: "udacity/example-auth:1.0.0"
           image: webmail
           imagePullPolicy: Never
           ports:
-            - name: http
-              containerPort: 80
+            #- name: http
+              #containerPort: 80
+            - name: https
+              containerPort: 443
+            - name: httpse
+              containerPort: 433
+            #- name: submission
+            #  containerPort: 587
             - name: health
               containerPort: 81
-          volumeMounts:
-            - name: "tls-certs"
-              mountPath: "/etc/tls"
-          resources:      
-           limits:
-             cpu: "1"
-             memory: 2Gi
-           requests:
-             cpu: 200m
-             memory: 1Gi
-      volumes:
-        - name: "tls-certs"
-          secret:
-            secretName: "tls-certs"
+          #resources:      
+          # limits:
+          #   cpu: "1"
+             #memory: 2Gi
+          #   memory: 1Gi
+             #memory: 512Mi
+          # requests:
+          #   cpu: 200m
+          #   memory: 1Gi
+             #memory: 256Mi
           #dnsPolicy: ClusterFirst # errors with this version
           #restartPolicy: Never   # errors with this version
           #resources:
